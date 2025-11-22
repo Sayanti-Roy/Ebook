@@ -1,0 +1,203 @@
+{% extends '_layouts/base.html' %}
+
+{% block title %}Study Groups{% endblock %}
+
+{% block head_css %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/forms_style.css') }}">
+  <style>
+    .groups-container {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: var(--spacing-xl);
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    .group-list {
+        background: var(--white);
+        border: 1px solid var(--grey-300);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        padding: var(--spacing-lg);
+        display: flex;
+        flex-direction: column;
+        min-height: 400px; /* Ensure consistent height */
+    }
+    .group-list-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--spacing-lg);
+        border-bottom: 1px solid var(--grey-300);
+        padding-bottom: 1rem;
+    }
+    .group-list-header h2 { margin: 0; }
+    
+    /* Search Input */
+    .group-search-input {
+        padding: 0.6rem 1rem;
+        border: 1px solid var(--grey-500);
+        border-radius: var(--border-radius);
+        font-size: 0.95rem;
+        width: 250px;
+        transition: border-color 0.2s;
+    }
+    .group-search-input:focus {
+        outline: none;
+        border-color: var(--color-primary);
+    }
+
+    /* Result Items */
+    .group-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-md);
+        border-bottom: 1px solid var(--grey-300);
+        transition: background 0.2s;
+        animation: fadeIn 0.3s ease;
+    }
+    .group-item:hover { background: #f8f9fa; }
+    .group-item:last-child { border-bottom: none; }
+    
+    .group-item-details h3 { font-size: 1.1rem; margin-bottom: 4px; color: var(--grey-900); }
+    .group-item-details p { font-size: 0.9rem; color: var(--grey-700); margin-bottom: 0; }
+    
+    .btn-join, .btn-view {
+        padding: 0.5rem 1.2rem;
+        font-weight: 600;
+        border-radius: var(--border-radius);
+        text-decoration: none;
+        font-size: 0.9rem;
+        border: none;
+        cursor: pointer;
+    }
+    .btn-view { background-color: var(--color-primary); color: var(--white); }
+    .btn-join { background-color: var(--color-success); color: var(--white); }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="groups-container">
+    
+    <div class="form-container" style="margin: 0; height: fit-content;">
+        <h2>Create a Group</h2>
+        <form method="POST" action="{{ url_for('create_group') }}">
+            <div class="form-group">
+                <label for="name">Group Name</label>
+                <input type="text" id="name" name="name" class="form-control" required placeholder="e.g., Sci-Fi Lovers">
+            </div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" rows="4" class="form-control" placeholder="What is this group about?"></textarea>
+            </div>
+            <button type="submit" class="btn-submit">Create Group</button>
+        </form>
+    </div>
+
+    <div class="group-list">
+        <div class="group-list-header">
+            <h2>Available Groups</h2>
+            <input type="text" id="groupSearchInput" class="group-search-input" placeholder="Type to search groups..." autocomplete="off">
+        </div>
+
+        <div id="groupResultsArea">
+            {% if groups %}
+                {% for group in groups %}
+                <div class="group-item">
+                    <div class="group-item-details">
+                        <h3>{{ group.name }}</h3>
+                        <p>Created by {{ group.creator.username }} | {{ group.members.count() }} member(s)</p>
+                    </div>
+                    <div class="group-actions">
+                        {% set is_member = current_user_id in (group.members | map(attribute='id') | list) %}
+                        
+                        {% if is_member %}
+                            <a href="{{ url_for('group_detail', group_id=group.id) }}" class="btn-view">View</a>
+                        {% else %}
+                            <form action="{{ url_for('join_group', group_id=group.id) }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn-join">Join</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div style="text-align: center; padding: 2rem; color: var(--grey-700);">
+                    <p>No study groups found.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchInput = document.getElementById('groupSearchInput');
+        const resultsArea = document.getElementById('groupResultsArea');
+
+        // Listen for typing
+        searchInput.addEventListener('input', async (e) => {
+            const query = e.target.value;
+
+            try {
+                // Fetch filtered groups from our new API
+                const response = await fetch(`/api/groups/search?q=${encodeURIComponent(query)}`);
+                if (!response.ok) throw new Error('Network error');
+                
+                const groups = await response.json();
+                
+                // Clear current list
+                resultsArea.innerHTML = '';
+
+                if (groups.length === 0) {
+                    resultsArea.innerHTML = `
+                        <div style="text-align: center; padding: 2rem; color: #718096;">
+                            <p>No groups matching "<strong>${query}</strong>"</p>
+                        </div>`;
+                    return;
+                }
+
+                // Re-render the list
+                groups.forEach(group => {
+                    const item = document.createElement('div');
+                    item.className = 'group-item';
+
+                    // Determine if we show "View" or "Join"
+                    let actionHtml = '';
+                    if (group.is_member) {
+                        actionHtml = `<a href="/group/${group.id}" class="btn-view">View</a>`;
+                    } else {
+                        actionHtml = `
+                            <form action="/group/${group.id}/join" method="POST" style="display:inline;">
+                                <button type="submit" class="btn-join">Join</button>
+                            </form>
+                        `;
+                    }
+
+                    item.innerHTML = `
+                        <div class="group-item-details">
+                            <h3>${group.name}</h3>
+                            <p>Created by ${group.creator_name} | ${group.member_count} member(s)</p>
+                        </div>
+                        <div class="group-actions">
+                            ${actionHtml}
+                        </div>
+                    `;
+                    
+                    resultsArea.appendChild(item);
+                });
+
+            } catch (error) {
+                console.error("Search failed:", error);
+            }
+        });
+    });
+</script>
+{% endblock %}

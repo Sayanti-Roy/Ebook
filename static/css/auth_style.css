@@ -1,0 +1,511 @@
+/* static/css/auth_style.css */
+/* --- CYBERPUNK NEON AUTH THEME --- */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+/* Define Neon Colors */
+:root {
+    --bg-main: #0d1117;       /* Deep dark background for the whole page */
+    
+    /* Writing area (both login & register) */
+    --bg-surface: #05070a;
+    
+    --neon-cyan: #30C9E8;     /* Main accent color */
+    --neon-blue: #58a6ff;
+    --text-primary: #ffffff;
+    --text-secondary: #8b949e;
+    --border-color: #30363d;
+    
+    --font-primary: 'Poppins', sans-serif;
+    --border-radius: 15px;
+    
+    --color-success: #28a745; /* For flash messages */
+    --color-danger: #d9534f;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: var(--font-primary);
+}
+
+body.auth-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: var(--bg-main);
+    /* Subtle grid background */
+    background-image: 
+        linear-gradient(rgba(48, 201, 232, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(48, 201, 232, 0.03) 1px, transparent 1px);
+    background-size: 30px 30px;
+}
+
+/* --- Main Container --- */
+.container {
+    position: relative;
+    width: 750px;
+    height: auto;
+    min-height: 620px;
+    background: var(--bg-surface);
+    /* Neon Border Glow */
+    border: 2px solid var(--neon-cyan);
+    box-shadow: 0 0 25px rgba(48, 201, 232, 0.3);
+    overflow: hidden;
+    border-radius: var(--border-radius);
+    color: var(--text-primary);
+}
+
+/* Optional curved shapes (if you want decoration) */
+.curved-shape,
+.curved-shape2 {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.curved-shape {
+    background: var(--neon-cyan);
+    top: -80px;
+    left: -80px;
+}
+
+.curved-shape2 {
+    background: var(--neon-blue);
+    bottom: -80px;
+    right: -80px;
+}
+
+.container .form-box {
+    position: absolute;
+    top: 0;
+    width: 50%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.form-box.Login { left: 0; padding: 0 40px; }
+.form-box.Register { right: 0; padding: 0 40px; pointer-events: none; }
+
+.container.active .form-box.Register { pointer-events: auto; }
+.container.active .form-box.Login { pointer-events: none; }
+
+/* --- Animations --- */
+.form-box.Login .animation { 
+    transform: translateX(0%); 
+    transition: .4s; 
+    opacity: 1; 
+    transition-delay: calc(.1s * var(--S)); 
+}
+.container.active .form-box.Login .animation { 
+    transform: translateX(-120%); 
+    opacity: 0; 
+    transition-delay: calc(.1s * var(--D)); 
+}
+
+.form-box.Register .animation { 
+    transform: translateX(120%); 
+    transition: .4s ease; 
+    opacity: 0; 
+    transition-delay: calc(.1s * var(--S)); 
+}
+.container.active .form-box.Register .animation { 
+    transform: translateX(0%); 
+    opacity: 1; 
+    transition-delay: calc(.1s * var(--li)); 
+}
+
+/* --- Sliding Info Panel --- */
+.info-content {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 50%;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+
+    /* DARK instead of gradient */
+    background: var(--bg-surface);
+    
+    color: var(--text-primary);
+    /* Border to separate from form */
+    border-left: 2px solid var(--neon-cyan); 
+}
+
+/* When active (Register side), border is on right */
+.container.active .info-content {
+    border-left: none;
+    border-right: 2px solid var(--neon-cyan);
+}
+
+.info-content.Login { 
+    right: 0; 
+    text-align: right; 
+    padding: 0 40px 60px 150px; 
+}
+/* Register info panel (initially hidden but still animatable) */
+.info-content.Register { 
+    left: 0; 
+    text-align: left; 
+    padding: 0 150px 60px 40px; 
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .4s ease, visibility .4s ease;
+}
+
+/* When active → fade in + animations now work */
+.container.active .info-content.Register { 
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+
+/* Info Animations */
+.info-content.Login .animation { 
+    transform: translateX(0); 
+    transition: .4s ease; 
+    opacity: 1; 
+    transition-delay: calc(.1s * var(--S)); 
+}
+.container.active .info-content.Login .animation { 
+    transform: translateX(120%); 
+    opacity: 0; 
+    transition-delay: calc(.1s * var(--D)); 
+}
+.info-content.Register .animation { 
+    transform: translateX(-120%); 
+    transition: .4s ease; 
+    opacity: 0; 
+    transition-delay: calc(.1s * var(--S)); 
+}
+.container.active .info-content.Register .animation { 
+    transform: translateX(0%); 
+    opacity: 1; 
+    transition-delay: calc(.1s * var(--li)); 
+}
+
+.info-content h2 { 
+    text-transform: uppercase; 
+    font-size: 36px; 
+    line-height: 1.3; 
+    color: #fff;
+    text-shadow: 0 0 10px rgba(48, 201, 232, 0.8); /* Neon Text Glow */
+}
+.info-content p { 
+    font-size: 16px; 
+    color: #f0f6fc; 
+}
+
+/* --- Form Styling --- */
+.form-box h2 {
+    font-size: 32px;
+    text-align: center;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+}
+
+.form-box .input-box {
+    position: relative;
+    width: 100%;
+    height: 50px;
+    margin: 15px 0;
+}
+
+.input-box input {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    color: var(--text-primary);
+    font-weight: 500;
+    border-bottom: 2px solid var(--text-secondary);
+    padding: 0 35px 0 5px;
+    transition: .5s;
+}
+
+.input-box input:focus,
+.input-box input:valid {
+    border-bottom-color: var(--neon-cyan);
+    box-shadow: 0 10px 10px -10px rgba(48, 201, 232, 0.5); /* Glow under input */
+}
+
+.input-box label {
+    position: absolute;
+    top: 50%;
+    left: 5px;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: var(--text-secondary);
+    pointer-events: none;
+    transition: .5s ease;
+}
+
+.input-box input:focus ~ label,
+.input-box input:valid ~ label {
+    top: -5px;
+    font-size: 13px;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 5px rgba(48, 201, 232, 0.6);
+}
+
+/* Boxicons */
+.input-box box-icon {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    fill: var(--text-secondary);
+    transition: .3s ease;
+}
+
+.input-box input:focus ~ box-icon,
+.input-box input:valid ~ box-icon {
+    fill: var(--neon-cyan);
+}
+
+/* --- Neon Button --- */
+.btn {
+    width: 100%;
+    height: 45px;
+    background: transparent;
+    border: 2px solid var(--neon-cyan);
+    border-radius: 40px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--neon-cyan);
+    transition: .3s;
+    margin-top: 15px;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+/* Gradient hover effect */
+.btn::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--neon-cyan);
+    z-index: -1;
+    transition: transform 0.3s ease;
+    transform: scaleX(0);
+    transform-origin: left;
+}
+
+.btn:hover::before {
+    transform: scaleX(1);
+}
+
+.btn:hover {
+    color: var(--bg-surface); /* Text turns dark on hover */
+    box-shadow: 0 0 15px rgba(48, 201, 232, 0.6);
+}
+
+.regi-link { 
+    font-size: 14px; 
+    text-align: center; 
+    margin: 20px 0 10px; 
+    color: var(--text-secondary); 
+}
+.regi-link a { 
+    text-decoration: none; 
+    color: var(--neon-cyan); 
+    font-weight: 600; 
+}
+.regi-link a:hover { 
+    text-decoration: underline; 
+    text-shadow: 0 0 5px rgba(48, 201, 232, 0.6); 
+}
+
+/* --- ADMIN TOGGLE --- */
+.admin-toggle-container {
+    display: flex;
+    align-items: center;
+    margin: 15px 0;
+}
+.toggle-label {
+    margin-left: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #30363d;
+    transition: .4s;
+    border-radius: 24px;
+}
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+/* Toggle Green for Admin */
+input:checked + .slider {
+    background-color: #3fb950; 
+    box-shadow: 0 0 10px rgba(63, 185, 80, 0.5);
+}
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+/* --- FLASH MESSAGES --- */
+.flash-messages {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 700px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.flash {
+    padding: 1rem;
+    border-radius: 8px;
+    font-weight: 500;
+    color: #fff;
+    text-align: center;
+    background: rgba(22, 27, 34, 0.9); /* Dark semi-transparent */
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(5px);
+    position: relative;
+    padding-right: 40px;
+}
+.flash-success { border-left: 5px solid var(--color-success); }
+.flash-danger  { border-left: 5px solid var(--color-danger); }
+.flash-info    { border-left: 5px solid var(--neon-cyan); }
+
+.flash-close {
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    color: var(--text-secondary);
+    opacity: 0.8;
+    transition: 0.2s;
+}
+.flash-close:hover { color: #fff; }
+
+.flash.fade-out {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+/* --- FIX FOR REGISTER FORM (On the Blue Side → now Dark) --- */
+
+/* 1. Force Container Background to Black when Active */
+.container.active {
+    background-color: #000000; 
+}
+
+/* 2. Register form background same as login */
+.container.active .form-box.Register {
+    background: var(--bg-surface);
+}
+
+/* 3. Also keep the left info panel dark when active */
+.container.active .info-content.Register {
+    background: var(--bg-surface);
+}
+
+/* 4. Register Title */
+.container.active .form-box.Register h2 { 
+    color: var(--text-primary); 
+}
+
+/* 5. Input Text & Border */
+.container.active .form-box.Register .input-box input { 
+    color: var(--text-primary); 
+    border-bottom-color: var(--text-secondary); 
+}
+
+/* 6. Focused Inputs */
+.container.active .form-box.Register .input-box input:focus,
+.container.active .form-box.Register .input-box input:valid { 
+    border-bottom-color: var(--neon-cyan); 
+}
+
+/* 7. Labels (Normal & Focused) */
+.container.active .form-box.Register .input-box label { 
+    color: var(--text-secondary); 
+}
+.container.active .form-box.Register .input-box input:focus ~ label,
+.container.active .form-box.Register .input-box input:valid ~ label { 
+    color: var(--neon-cyan); 
+    top: -5px;
+    font-size: 13px;
+}
+
+/* 8. Icons (Normal & Focused) */
+.container.active .form-box.Register .input-box box-icon { 
+    fill: var(--text-secondary); 
+}
+.container.active .form-box.Register .input-box input:focus ~ box-icon,
+.container.active .form-box.Register .input-box input:valid ~ box-icon { 
+    fill: var(--neon-cyan); 
+}
+
+/* 9. Register Button (Wireframe style matching login) */
+.container.active .form-box.Register .btn {
+    background: transparent;
+    border: 2px solid var(--neon-cyan);
+    color: var(--neon-cyan);
+    font-weight: 600;
+}
+.container.active .form-box.Register .btn:hover {
+    background: var(--neon-cyan);
+    color: var(--bg-main); 
+    box-shadow: 0 0 15px var(--neon-cyan);
+}
+
+/* 10. Links & Toggles */
+.container.active .form-box.Register .toggle-label { color: var(--text-secondary); }
+.container.active .form-box.Register .regi-link { color: var(--text-secondary); }
+.container.active .form-box.Register .regi-link a { color: var(--neon-cyan); }
+
+/* 11. Admin Code Box Label */
+.container.active #adminCodeBox .input-box label { color: var(--text-secondary); }
+.container.active #adminCodeBox .input-box input:focus ~ label,
+.container.active #adminCodeBox .input-box input:valid ~ label { color: var(--neon-cyan); }

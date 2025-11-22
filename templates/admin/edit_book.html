@@ -1,0 +1,40 @@
+{% extends '_layouts/admin_base.html' %}
+
+{% block title %}Edit {{ ebook.title }}{% endblock %}
+
+{% block head_css %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/forms_style.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2>Edit "{{ ebook.title }}"</h2>
+    <p>Update the book's metadata below. This form does not handle file re-uploads.</p>
+    
+    <form action="{{ url_for('edit_ebook', ebook_id=ebook.id) }}" method="POST">
+        <div class="form-group">
+            <label for="title">Book Title</label>
+            <input type="text" id="title" name="title" class="form-control" value="{{ ebook.title }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="author_name">Author's Name</label>
+            <input type="text" id="author_name" name="author_name" class="form-control" value="{{ ebook.author_name }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="category_id">Category</label>
+            <select id="category_id" name="category_id" class="form-control" required>
+                {% for category in categories %}
+                    <option value="{{ category.id }}" {% if ebook.category_id == category.id %}selected{% endif %}>
+                        {{ category.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <button type="submit" class="btn-submit">Save Changes</button>
+    </form>
+</div>
+{% endblock %}

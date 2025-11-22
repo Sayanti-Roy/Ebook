@@ -1,0 +1,208 @@
+{% extends '_layouts/base.html' %}
+
+{% block title %}Library Dashboard{% endblock %}
+
+{% block head_css %}
+<style>
+    /* --- Support Section Styles --- */
+    .support-area {
+        margin-top: 4rem;
+        background: rgba(22, 27, 34, 0.6); /* Semi-transparent dark */
+        border: 1px solid var(--border-color);
+        border-left: 5px solid var(--neon-cyan); /* Neon accent on left */
+        border-radius: 12px;
+        padding: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .support-area:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0 20px rgba(48, 201, 232, 0.15);
+        border-color: var(--neon-cyan);
+    }
+
+    .support-text h3 {
+        font-size: 1.5rem;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+        text-shadow: 0 0 10px rgba(48, 201, 232, 0.3);
+    }
+
+    .support-text p {
+        color: var(--text-secondary);
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    .btn-support {
+        background: transparent;
+        border: 2px solid var(--neon-cyan);
+        color: var(--neon-cyan);
+        padding: 0.8rem 2rem;
+        border-radius: 50px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .btn-support:hover {
+        background: var(--neon-cyan);
+        color: #0d1117; /* Dark background color */
+        box-shadow: 0 0 20px var(--neon-cyan);
+        text-decoration: none;
+    }
+
+    /* Responsive for mobile */
+    @media (max-width: 768px) {
+        .support-area {
+            flex-direction: column;
+            text-align: center;
+            gap: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ebooks-section">
+    <div class="collection-header">
+        <h2>Explore The Library</h2>
+        <div class="filters-container">
+            <div class="search-form">
+                <input type="text" id="searchInput" name="search" placeholder="Search by title or author..." value="{{ search_query or '' }}">
+            </div>
+            <div class="category-filter">
+                <select id="categoryFilter">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <div class="ebook-display-area"> 
+        <div class="ebook-grid" id="ebookGrid">
+            {% if ebooks %}
+                {% for ebook in ebooks %}
+                    <div class="ebook-card">
+                        {% if ebook.cover_image_url %}
+                            <img src="{{ ebook.cover_image_url }}" alt="{{ ebook.title }} cover" class="ebook-cover-img">
+                        {% else %}
+                            <div class="ebook-icon">📖</div>
+                        {% endif %}
+                        
+                        <div class="ebook-details">
+                            <h3>{{ ebook.title }}</h3>
+                            <p class="ebook-author">by {{ ebook.author_name }}</p>
+                            <p class="ebook-genre">{{ ebook.category.name if ebook.category else 'N/A' }}</p>
+                        </div>
+
+                        <div class="ebook-actions">
+                            <a href="{{ url_for('read_ebook', ebook_id=ebook.id) }}" class="btn-read">Read</a>
+                            <a href="{{ url_for('download_ebook', ebook_id=ebook.id) }}" class="btn-download">Download</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="no-results">No books found. <a href="{{ url_for('admin_dashboard') }}">Try uploading one!</a></p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="support-area">
+        <div class="support-text">
+            <h3><i style="vertical-align: middle; margin-right: 8px;">📡</i> Need Assistance?</h3>
+            <p>Encountering a glitch or want to request a new book? Connect with the library network.</p>
+        </div>
+        <a href="{{ url_for('contact') }}" class="btn-support">Contact Support</a>
+    </div>
+
+</div> 
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchInput = document.getElementById('searchInput');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const ebookGrid = document.getElementById('ebookGrid');
+
+        let debounceTimeout;
+        
+        const debounce = (func, delay) => {
+            return (...args) => {
+                clearTimeout(debounceTimeout);
+                debounceTimeout = setTimeout(() => {
+                    func.apply(this, args);
+                }, delay);
+            };
+        };
+
+        const performSearch = async () => {
+            const query = searchInput.value;
+            const categoryId = categoryFilter.value;
+            try {
+                const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&category=${encodeURIComponent(categoryId)}`); 
+                if (!response.ok) throw new Error('Network response was not ok');
+                
+                const books = await response.json();
+                renderBooks(books);
+            } catch (error) {
+                console.error('Error fetching search results:', error);
+                ebookGrid.innerHTML = '<p class="no-results" style="color: var(--neon-red);">An error occurred while searching. Please try again later.</p>'; 
+            }
+        };
+
+        // === Client-Side Rendering Logic ===
+        const renderBooks = (books) => {
+            ebookGrid.innerHTML = ''; // Clear existing results
+
+            if (books.length === 0) {
+                ebookGrid.innerHTML = `<p class="no-results">No books found matching your criteria.</p>`;
+                return;
+            }
+
+            books.forEach(book => {
+                const card = document.createElement('div');
+                card.className = 'ebook-card';
+
+                // Determine if we show an image or icon
+                let coverHtml = '';
+                if (book.cover_image_url) {
+                    coverHtml = `<img src="${book.cover_image_url}" alt="${book.title} cover" class="ebook-cover-img">`;
+                } else {
+                    coverHtml = `<div class="ebook-icon">📖</div>`;
+                }
+
+                card.innerHTML = `
+                    ${coverHtml}
+                    <div class="ebook-details">
+                        <h3>${book.title}</h3>
+                        <p class="ebook-author">by ${book.author_name}</p>
+                        <p class="ebook-genre">${book.category_name || 'N/A'}</p> 
+                    </div>
+                    <div class="ebook-actions">
+                        <a href="/read/${book.id}" class="btn-read">Read</a>
+                        <a href="/download/${book.id}" class="btn-download">Download</a>
+                    </div>
+                `;
+                ebookGrid.appendChild(card);
+            });
+        };
+        
+        // Event Listeners
+        searchInput.addEventListener('input', debounce(performSearch, 300));
+        categoryFilter.addEventListener('change', performSearch);
+    });
+</script>
+{% endblock %}

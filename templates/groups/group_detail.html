@@ -1,0 +1,267 @@
+{% extends '_layouts/base.html' %}
+
+{% block title %}{{ group.name }} | Study Group{% endblock %}
+
+{% block head_css %}
+  <style>
+    /* --- Page Layout --- */
+    .group-header {
+        background: var(--white);
+        border: 1px solid var(--grey-300);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        padding: var(--spacing-xl);
+        margin-bottom: var(--spacing-xl);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .group-header h1 { margin: 0; font-size: 2rem; color: #1a202c; }
+    .group-header p { margin: 10px 0 0; color: #4a5568; font-size: 1.1rem; }
+    
+    /* Buttons */
+    .btn-danger {
+        background-color: #e53e3e;
+        color: white;
+        padding: 0.7rem 1.5rem;
+        font-weight: 600;
+        border-radius: 6px;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: background 0.2s;
+        font-size: 1rem;
+    }
+    .btn-danger:hover { background-color: #c53030; }
+    
+    /* Content Grid */
+    .group-content {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: var(--spacing-xl);
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    .group-panel {
+        background: var(--white);
+        border: 1px solid var(--grey-300);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        padding: var(--spacing-lg);
+    }
+    .group-panel h2 {
+        margin-bottom: var(--spacing-lg);
+        border-bottom: 1px solid var(--grey-300);
+        padding-bottom: 15px;
+        color: #2d3748;
+    }
+    .member-list li {
+        font-size: 1.05rem;
+        padding: 10px 0;
+        border-bottom: 1px solid #edf2f7;
+        color: #4a5568;
+    }
+    .member-list li:last-child { border-bottom: none; }
+
+    /* --- CUSTOM MODAL STYLES --- */
+    .custom-modal {
+        display: none; /* Hidden by default */
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* Black w/ opacity */
+        backdrop-filter: blur(4px); /* Blur background */
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    /* Class to trigger fade in */
+    .custom-modal.show {
+        display: flex;
+        opacity: 1;
+    }
+    
+    .modal-box {
+        background-color: #fff;
+        padding: 2rem;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 450px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        text-align: center;
+        transform: scale(0.95);
+        transition: transform 0.3s ease;
+    }
+    .custom-modal.show .modal-box {
+        transform: scale(1);
+    }
+
+    .modal-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .modal-box h3 { color: #e53e3e; font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .modal-box p { color: #718096; margin-bottom: 2rem; line-height: 1.5; }
+    
+    .modal-actions { display: flex; justify-content: center; gap: 15px; }
+    
+    .btn-modal-cancel {
+        background-color: #edf2f7; color: #4a5568;
+        border: none; padding: 10px 20px; border-radius: 6px;
+        font-weight: 600; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-modal-cancel:hover { background-color: #e2e8f0; }
+
+    .btn-modal-confirm {
+        background-color: #e53e3e; color: white;
+        border: none; padding: 10px 20px; border-radius: 6px;
+        font-weight: 600; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-modal-confirm:hover { background-color: #c53030; }
+
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="group-header">
+    <div>
+        <h1>{{ group.name }}</h1>
+        <p>{{ group.description }}</p>
+    </div>
+    
+    <div class="group-actions">
+        {% if session.user_id == group.creator_id or session.is_admin %}
+            <button type="button" id="triggerDeleteBtn" class="btn-danger">Delete Group</button>
+        {% else %}
+            <button type="button" id="triggerLeaveBtn" class="btn-danger">Leave Group</button>
+        {% endif %}
+    </div>
+</div>
+
+<div class="group-content">
+    
+    <div class="group-panel">
+        <h2>Group Annotation Layers</h2>
+        {% if group.layers %}
+            <ul class="member-list" style="list-style: none; padding: 0;">
+                {% for layer in group.layers %}
+                    <li style="padding: 15px 0;">
+                        <div style="font-weight: 600; font-size: 1.1rem; color: #2b6cb0;">{{ layer.name }}</div>
+                        <div style="font-size: 0.9rem; margin-top: 4px;">
+                            on <a href="{{ url_for('read_ebook', ebook_id=layer.ebook_id) }}" style="color: #2d3748; text-decoration: underline;">{{ layer.ebook.title }}</a>
+                        </div>
+                        <div style="font-size: 0.85rem; color: #a0aec0; margin-top: 2px;">
+                            Created by {{ layer.creator.username }}
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div style="text-align: center; padding: 2rem 0; color: #718096;">
+                <p>No shared notes yet.</p>
+                <p style="font-size: 0.9rem;">Open a book and select this group when creating a new layer to share it here.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="group-panel">
+        <h2>Members ({{ group.members.count() }})</h2>
+        <ul class="member-list">
+            {% for member in group.members %}
+            <li>
+                {{ member.username }}
+                {% if member.id == group.creator_id %}
+                    <span style="font-size: 0.75rem; background: #ebf8ff; color: #2b6cb0; padding: 2px 8px; border-radius: 10px; margin-left: 8px; font-weight: 600; border: 1px solid #bee3f8;">CREATOR</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<div id="deleteGroupModal" class="custom-modal">
+    <div class="modal-box">
+        <div class="modal-icon">⚠️</div>
+        <h3>Delete this Group?</h3>
+        <p>
+            Are you sure you want to permanently delete <strong>"{{ group.name }}"</strong>?
+            <br><br>
+            This will remove the group for all members and unlink all shared annotation layers. This action cannot be undone.
+        </p>
+        <div class="modal-actions">
+            <button id="cancelDeleteModalBtn" class="btn-modal-cancel">Cancel</button>
+            <form action="{{ url_for('delete_group', group_id=group.id) }}" method="POST">
+                <button type="submit" class="btn-modal-confirm">Yes, Delete Group</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="leaveGroupModal" class="custom-modal">
+    <div class="modal-box">
+        <div class="modal-icon">👋</div>
+        <h3>Leave this Group?</h3>
+        <p>
+            Are you sure you want to leave <strong>"{{ group.name }}"</strong>?
+            <br><br>
+            You will no longer see the shared notes from this group. You can rejoin later if you wish.
+        </p>
+        <div class="modal-actions">
+            <button id="cancelLeaveModalBtn" class="btn-modal-cancel">Cancel</button>
+            <form action="{{ url_for('leave_group', group_id=group.id) }}" method="POST">
+                <button type="submit" class="btn-modal-confirm">Yes, Leave Group</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        // --- Helper Function to Open Modal ---
+        function openModal(modal) {
+            if (!modal) return;
+            modal.style.display = 'flex';
+            setTimeout(() => { modal.classList.add('show'); }, 10);
+        }
+
+        // --- Helper Function to Close Modal ---
+        function closeModal(modal) {
+            if (!modal) return;
+            modal.classList.remove('show');
+            setTimeout(() => { modal.style.display = 'none'; }, 300);
+        }
+
+        // --- 1. Delete Modal Logic ---
+        const deleteModal = document.getElementById('deleteGroupModal');
+        const triggerDeleteBtn = document.getElementById('triggerDeleteBtn');
+        const cancelDeleteBtn = document.getElementById('cancelDeleteModalBtn');
+
+        if (triggerDeleteBtn) {
+            triggerDeleteBtn.addEventListener('click', () => openModal(deleteModal));
+        }
+        if (cancelDeleteBtn) {
+            cancelDeleteBtn.addEventListener('click', () => closeModal(deleteModal));
+        }
+
+        // --- 2. Leave Modal Logic ---
+        const leaveModal = document.getElementById('leaveGroupModal');
+        const triggerLeaveBtn = document.getElementById('triggerLeaveBtn');
+        const cancelLeaveBtn = document.getElementById('cancelLeaveModalBtn');
+
+        if (triggerLeaveBtn) {
+            triggerLeaveBtn.addEventListener('click', () => openModal(leaveModal));
+        }
+        if (cancelLeaveBtn) {
+            cancelLeaveBtn.addEventListener('click', () => closeModal(leaveModal));
+        }
+
+        // --- Global Click Outside to Close ---
+        window.addEventListener('click', (e) => {
+            if (e.target === deleteModal) closeModal(deleteModal);
+            if (e.target === leaveModal) closeModal(leaveModal);
+        });
+    });
+</script>
+{% endblock %}

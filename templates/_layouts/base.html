@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}The Public Index{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head_css %}{% endblock %}
+</head>
+<body class="dashboard">
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('dashboard') }}" class="nav-brand">📚 The Public Index</a>
+            <ul class="nav-menu">
+                {% if 'logged_in' in session %}
+                    <li class="nav-item">
+                        <span class="nav-welcome">Welcome, {{ session.username }}!</span>
+                    </li>
+                    
+                    {% if session.is_admin %}
+                    <li class="nav-item">
+                        <a href="{{ url_for('admin_dashboard') }}" class="nav-link upload-btn">Admin Panel</a>
+                    </li>
+                    {% endif %}
+
+                    <li class="nav-item">
+                        <a href="{{ url_for('group_list') }}" class="nav-link">Groups</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('logout') }}" class="nav-link logout-btn">Logout</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a href="{{ url_for('auth') }}" class="nav-link login-btn">Login / Sign Up</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages dashboard-flash">
+                    {% for category, message in messages %}
+                        <div class="flash flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,50 @@
+{% extends '_layouts/admin_base.html' %}
+
+{% block title %}Upload New eBook{% endblock %}
+
+{% block head_css %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/forms_style.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2>Publish a New eBook</h2>
+    <p>Fill out the details below to add a new book to the library. The file will be uploaded to S3.</p>
+    
+    <form action="{{ url_for('admin_upload') }}" method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="title">Book Title</label>
+            <input type="text" id="title" name="title" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="author_name">Author's Name</label>
+            <input type="text" id="author_name" name="author_name" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="category_id">Category</label>
+            <select id="category_id" name="category_id" class="form-control" required>
+                <option value="" disabled selected>-- Select a Category --</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="cover_image_url">Cover Image URL (Optional)</label>
+            <input type="url" id="cover_image_url" name="cover_image_url" class="form-control" placeholder="Paste a link to an image (e.g. from Google Images)">
+            <small style="color: #888; display: block; margin-top: 5px;">Leave empty to auto-fetch from Google Books.</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="ebook_file">eBook File (PDF only)</label>
+            <input type="file" id="ebook_file" name="ebook_file" class="form-control" accept=".pdf" required>
+        </div>
+        
+        <button type="submit" class="btn-submit">Publish Book</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,354 @@
+/* static/css/admin_style.css */
+/* --- MINIMALIST ACADEMIC: ADMIN PANEL --- */
+
+/* Inherit variables from style.css */
+:root {
+    --font-primary: 'Poppins', sans-serif;
+    --color-primary: #005A9C;
+    --color-primary-dark: #003D6A;
+    --color-primary-light: #E6F0F8;
+    --color-secondary: #007A8A;
+    --color-danger: #d9534f;
+    --color-success: #28a745;
+    --grey-900: #212529;
+    --grey-700: #495057;
+    --grey-500: #ADB5BD;
+    --grey-300: #E9ECEF;
+    --grey-100: #F8F9FA;
+    --white: #FFFFFF;
+    --border-radius: 8px;
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+}
+
+/* ========== GLOBAL ========== */
+body {
+    background-color: var(--grey-100); /* Consistent background */
+    color: var(--grey-900);
+}
+
+/* ========== NAVBAR OVERRIDES ========== */
+/* We want the admin bar to be distinct */
+.navbar {
+    background: var(--grey-900);
+    border-bottom: 2px solid var(--color-primary);
+}
+.nav-brand {
+    color: var(--white);
+}
+.nav-link, .nav-welcome {
+    color: var(--grey-300) !important; /* Use !important to override base.html styles */
+}
+.nav-link:hover {
+    color: var(--white) !important;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+/* Admin panel button */
+.upload-btn {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--white);
+}
+.upload-btn:hover {
+    background-color: #0073c4;
+    border-color: #0073c4;
+}
+
+/* ========== MAIN CONTAINER ========== */
+.admin-container {
+    max-width: 1200px;
+    margin: var(--spacing-xl) auto;
+    padding: 0 var(--spacing-lg);
+    text-align: center;
+}
+
+.gradient-text { /* Re-style as simple header */
+    color: var(--grey-900);
+    font-size: 2.5rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+    text-shadow: none;
+    background: none;
+}
+.admin-container > p {
+    color: var(--grey-700);
+    margin-bottom: var(--spacing-xl);
+    font-size: 1.1rem;
+}
+
+/* Primary admin action */
+.admin-primary-action {
+    display: inline-block;
+    background: var(--color-primary);
+    color: var(--white);
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    margin-bottom: var(--spacing-xl);
+    transition: all 0.2s ease;
+}
+.admin-primary-action:hover {
+    background: var(--color-primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--box-shadow);
+}
+
+/* ========== FLASH MESSAGES ========== */
+/* Uses .flash-messages styles from style.css */
+
+/* ========== SECTIONS ========== */
+.management-section {
+    background: var(--white);
+    border: 1px solid var(--grey-300);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+    text-align: left;
+}
+.management-section h2 {
+    font-size: 1.75rem;
+    margin-bottom: var(--spacing-lg);
+    color: var(--grey-900);
+    font-weight: 600;
+}
+
+/* ========== CATEGORY FORM ========== */
+.category-form {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    flex-wrap: wrap;
+}
+.category-form input {
+    flex: 1;
+    min-width: 250px;
+    padding: 0.75rem 1rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--grey-500);
+    background: var(--white);
+    color: var(--grey-900);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+.category-form input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+.category-form button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    background: var(--color-secondary);
+    color: var(--white);
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+.category-form button:hover {
+    background: #005a66;
+}
+
+/* CATEGORY LIST */
+.category-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+    list-style: none;
+}
+.category-list li {
+    background: var(--grey-100);
+    border: 1px solid var(--grey-300);
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    color: var(--grey-700);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+.btn-delete-category {
+    background: none;
+    border: none;
+    color: var(--grey-700);
+    cursor: pointer;
+    padding: 2px;
+    display: inline-block;
+    font-size: 1.1rem;
+}
+.btn-delete-category:hover {
+    color: var(--color-danger);
+}
+
+
+/* ========== TABLE STYLING ========== */
+.table-container {
+    overflow-x: auto;
+    border: 1px solid var(--grey-300);
+    border-radius: var(--border-radius);
+}
+.ebook-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.ebook-table th {
+    color: var(--grey-700);
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    background: var(--grey-100);
+    border-bottom: 2px solid var(--grey-300);
+}
+.ebook-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--grey-300);
+    color: var(--grey-900);
+    vertical-align: middle;
+}
+.ebook-table tbody tr:last-child td {
+    border-bottom: none;
+}
+.ebook-table tbody tr:hover {
+    background: var(--color-primary-light);
+}
+.empty {
+    text-align: center;
+    color: var(--grey-700);
+}
+
+/* ACTION BUTTONS */
+.actions-cell {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.btn-edit, .btn-delete-ebook {
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.5rem 1rem;
+    color: var(--white);
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+    font-family: var(--font-primary);
+    text-decoration: none;
+}
+.btn-edit {
+    background: var(--color-secondary);
+}
+.btn-edit:hover {
+    background: #005a66;
+}
+.btn-delete-ebook {
+    background: var(--color-danger);
+}
+.btn-delete-ebook:hover {
+    background: #c9302c;
+}
+
+/* ===== Modal Styling ===== */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    justify-content: center;
+    align-items: center;
+}
+.modal-content {
+    background: var(--white);
+    border: 1px solid var(--grey-300);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-xl);
+    text-align: center;
+    color: var(--grey-900);
+    width: 90%;
+    max-width: 450px;
+}
+.modal-content h3 {
+    margin-bottom: var(--spacing-sm);
+    font-size: 1.5rem;
+    color: var(--grey-900);
+}
+.modal-content p {
+    margin-bottom: var(--spacing-lg);
+    color: var(--grey-700);
+}
+.modal-actions {
+    margin-top: var(--spacing-lg);
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-md);
+}
+.btn-cancel, .btn-confirm {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.btn-cancel {
+    background: var(--grey-300);
+    color: var(--grey-900);
+}
+.btn-cancel:hover {
+    background: var(--grey-500);
+}
+.btn-confirm {
+    background: var(--color-danger);
+    color: var(--white);
+}
+.btn-confirm:hover {
+    background: #c9302c;
+}
+/* --- ADD TO BOTTOM of admin_style.css --- */
+
+.admin-nav-links {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-xl);
+    flex-wrap: wrap;
+}
+.admin-secondary-action {
+    display: inline-block;
+    background: var(--white);
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    position: relative;
+}
+.admin-secondary-action:hover {
+    background: var(--color-primary-light);
+}
+.badge {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background-color: var(--color-danger);
+    color: var(--white);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: bold;
+}

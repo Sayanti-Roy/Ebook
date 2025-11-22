@@ -1,0 +1,57 @@
+{% extends '_layouts/admin_base.html' %}
+
+{% block title %}Book Submission Queue{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <h1 class="gradient-text">Submission Queue</h1>
+    <p>Review user-submitted books. Approving a submission does NOT automatically upload a file.</p>
+
+    <section class="management-section glass">
+        <h2>Pending Submissions ({{ submissions|length }})</h2>
+        {% if submissions %}
+            <div class="table-container">
+                <table class="ebook-table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>Submitted By</th>
+                            <th>Source URL</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sub in submissions %}
+                        <tr>
+                            <td>{{ sub.title }}</td>
+                            <td>{{ sub.author }}</td>
+                            <td>{{ sub.submitter.username }}</td>
+                            <td>
+                                {% if sub.source_url %}
+                                    <a href="{{ sub.source_url }}" target="_blank" rel="noopener noreferrer">View Source</a>
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td class="actions-cell">
+                                <form action="{{ url_for('approve_submission', sub_id=sub.id) }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="btn-edit" style="background: var(--color-success);">Approve</button>
+                                </form>
+                                <form action="{{ url_for('reject_submission', sub_id=sub.id) }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="btn-delete-ebook">Reject</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p style="text-align: center; color: var(--grey-700); padding: 1rem;">
+                The submission queue is empty.
+            </p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

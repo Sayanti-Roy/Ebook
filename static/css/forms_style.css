@@ -1,0 +1,106 @@
+/* static/css/forms_style.css */
+/* --- MINIMALIST ACADEMIC: FORMS --- */
+
+/* Inherit variables from style.css */
+:root {
+    --font-primary: 'Poppins', sans-serif;
+    --color-primary: #005A9C;
+    --color-primary-dark: #003D6A;
+    --color-primary-light: #E6F0F8;
+    --grey-900: #212529;
+    --grey-700: #495057;
+    --grey-500: #ADB5BD;
+    --grey-300: #E9ECEF;
+    --grey-100: #F8F9FA;
+    --white: #FFFFFF;
+    --border-radius: 8px;
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+}
+
+/* --- Form Container --- */
+.form-container {
+    max-width: 700px;
+    margin: var(--spacing-xl) auto;
+    background-color: var(--white);
+    border: 1px solid var(--grey-300);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-xl);
+    box-shadow: var(--box-shadow);
+}
+.form-container h2 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--grey-900);
+    margin-bottom: var(--spacing-sm);
+    text-align: center;
+}
+.form-container p {
+    font-size: 1rem;
+    color: var(--grey-700);
+    margin-bottom: var(--spacing-lg);
+    text-align: center;
+}
+
+/* --- Form Fields --- */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: var(--spacing-lg);
+}
+.form-group label {
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+    color: var(--grey-900);
+    font-size: 1rem;
+}
+.form-control {
+    padding: 0.85rem 1rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--grey-500);
+    background-color: var(--white);
+    color: var(--grey-900);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    font-family: var(--font-primary);
+}
+.form-control:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+/* --- Select Dropdown --- */
+select.form-control {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23495057' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1.25em;
+    padding-right: 2.5rem;
+}
+.form-control option {
+    background-color: var(--white);
+    color: var(--grey-900);
+}
+
+/* --- Submit Button --- */
+.btn-submit {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    background: var(--color-primary);
+    color: var(--white);
+    font-weight: 600;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.btn-submit:hover {
+    background: var(--color-primary-dark);
+}

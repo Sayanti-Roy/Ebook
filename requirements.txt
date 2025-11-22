@@ -1,0 +1,13 @@
+Flask
+Flask-Bcrypt
+Flask-SQLAlchemy
+Flask-Migrate
+Flask-Mail
+python-dotenv
+boto3
+google-generativeai
+PyPDF2
+PyMySQL
+gunicorn
+cryptography
+requests

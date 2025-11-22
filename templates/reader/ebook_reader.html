@@ -1,0 +1,331 @@
+{% extends '_layouts/base.html' %}
+
+{% block title %}Reading: {{ ebook.title }}{% endblock %}
+
+{% block head_css %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='pdfjs/viewer.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  
+  <style>
+    /* --- THEME OVERRIDES --- */
+    body { background: #f0f2f5 !important; color: #1a202c !important; }
+    .navbar { background: #2d3748 !important; }
+    .nav-brand, .nav-link, .nav-welcome, .logout-btn { color: #fff !important; }
+    
+    input, select, textarea {
+        background-color: #ffffff !important;
+        color: #1a202c !important;
+        border: 1px solid #cbd5e0 !important;
+    }
+    option { background-color: #ffffff !important; color: #1a202c !important; }
+    ::placeholder { color: #a0aec0 !important; opacity: 1; }
+
+    .reader-container { display: flex; height: calc(100vh - 70px); }
+
+    /* --- PDF VIEWER --- */
+    .pdf-viewer-area {
+        flex: 3; background: #525659; overflow: auto; position: relative;
+        box-shadow: inset -5px 0 15px rgba(0,0,0,0.1);
+    }
+    #viewer-container { width: 100%; }
+    .pdf-page-wrapper {
+        margin: 20px auto;
+        border: 1px solid #333;
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        position: relative; /* Essential */
+    }
+    
+    .textLayer {
+        position: absolute;
+        left: 0; top: 0; right: 0; bottom: 0;
+        overflow: hidden;
+        opacity: 0.2; /* Keep visible for debugging, change to 0 later */
+        line-height: 1.0;
+        z-index: 5; /* Must be above canvas */
+    }
+    .pdf-page-canvas { display: block; width: 100%; height: 100%; }
+    
+    /* Text Layer */
+
+    .textLayer > span { color: transparent; position: absolute; white-space: pre; cursor: text; transform-origin: 0% 0%; }
+    .textLayer ::selection { background: rgba(59, 130, 246, 0.3); color: transparent; }
+
+    /* Toolbar */
+    .pdf-toolbar {
+        position: sticky; top: 0; background: #2d3748; color: white;
+        padding: 10px; text-align: center; z-index: 100;
+        display: flex; justify-content: center; align-items: center; gap: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .pdf-toolbar button {
+        background: #4a5568; color: white; border: none;
+        padding: 6px 12px; border-radius: 6px; cursor: pointer;
+        font-size: 0.9rem; transition: all 0.2s;
+    }
+    .pdf-toolbar button:hover { background: #718096; transform: translateY(-1px); }
+
+    /* --- SIDEBAR --- */
+    .annotation-sidebar {
+        flex: 1; background: #ffffff; border-left: 1px solid #e2e8f0;
+        display: flex; flex-direction: column; height: 100%;
+        min-width: 350px; z-index: 20;
+    }
+    
+    .sidebar-header {
+        padding: 1.2rem; background: #fff; border-bottom: 1px solid #e2e8f0;
+        display: flex; gap: 10px; align-items: center;
+    }
+    #layer-select {
+        flex: 1; padding: 0.6rem; border-radius: 8px; font-size: 0.95rem;
+    }
+    #add-layer-btn {
+        width: 35px; height: 35px; border: 1px solid #cbd5e0;
+        border-radius: 8px; background: #fff; color: #4a5568;
+        font-weight: bold; font-size: 1.2rem; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.2s;
+    }
+    #add-layer-btn:hover { background: #edf2f7; color: #2b6cb0; }
+
+    /* Notes List */
+    .annotation-list {
+        flex-grow: 1; overflow-y: auto; padding: 1.5rem;
+        background: #f8fafc; display: flex; flex-direction: column; gap: 1.2rem;
+    }
+    .annotation-card {
+        background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+        padding: 1.2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        transition: transform 0.2s;
+    }
+    .annotation-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+    
+    .annotation-author { font-weight: 700; font-size: 0.85rem; color: #4a5568; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .annotation-content { font-size: 1rem; color: #2d3748; line-height: 1.6; white-space: pre-wrap; }
+    .annotation-highlight { font-style: italic; border-left: 3px solid #cbd5e0; padding-left: 12px; margin-top: 12px; color: #718096; font-size: 0.9rem; }
+
+    /* --- COMPOSER TABS --- */
+    .composer-tabs {
+        display: flex;
+        background: #f1f5f9;
+        padding: 4px;
+        border-radius: 12px 12px 0 0; /* Rounded top */
+        border: 1px solid #e2e8f0;
+        border-bottom: none;
+        margin-top: auto; /* Push to bottom */
+    }
+    
+    .tab-btn {
+        flex: 1; text-align: center; padding: 10px; font-size: 0.9rem;
+        font-weight: 600; color: #718096; cursor: pointer; border-radius: 8px;
+        transition: all 0.2s; user-select: none;
+    }
+    .tab-btn.active { background: #fff; color: #2d3748; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .tab-btn.active.write-mode { color: #2d3748; }
+    .tab-btn.active.ai-mode { color: #6b46c1; } 
+
+    /* --- COMPOSER FORM --- */
+    .annotation-form {
+        padding: 0 1.5rem 1.5rem 1.5rem;
+        background: #fff;
+        border-top: none;
+    }
+    
+    .composer-container {
+        border: 1px solid #e2e8f0;
+        border-top: none;
+        border-radius: 0 0 12px 12px; /* Rounded bottom */
+        overflow: hidden;
+        background: #fff;
+    }
+
+    /* --- TYPOGRAPHY UPGRADE FOR TEXT AREA --- */
+    #annotation-textarea {
+        width: 100%; padding: 1.2rem; 
+        border: none !important;
+        resize: none; 
+        outline: none; 
+        background: #fff !important;
+        
+        /* Improved Text Styles */
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        font-size: 1.05rem; /* Larger text */
+        font-weight: 400;
+        line-height: 1.6; /* Better spacing between lines */
+        color: #1a202c !important; /* High contrast dark grey */
+        
+        min-height: 300px; /* Default height */
+        transition: height 0.3s ease-in-out;
+    }
+    #annotation-textarea::placeholder {
+        font-weight: 400;
+        color: #a0aec0 !important;
+    }
+
+    .composer-toolbar {
+        display: flex;
+        justify-content: flex-end;
+        padding: 0.5rem 0.8rem;
+        background: #f7fafc;
+        border-top: 1px solid #f1f5f9;
+        align-items: center;
+        min-height: 50px;
+    }
+
+    /* Buttons */
+    .btn-modern {
+        display: flex; align-items: center; gap: 6px;
+        padding: 8px 20px; border-radius: 20px;
+        font-size: 0.9rem; font-weight: 600; border: none;
+        cursor: pointer; transition: all 0.2s;
+    }
+
+    #save-annotation-btn { background: #2d3748; color: #fff; }
+    #save-annotation-btn:hover { background: #1a202c; }
+
+    #ask-ai-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 2px 10px rgba(118, 75, 162, 0.3);
+    }
+    #ask-ai-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(118, 75, 162, 0.4); }
+    
+    #ask-ai-btn:disabled { opacity: 0.8; cursor: wait; animation: pulse 1.5s infinite; }
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(118, 75, 162, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(118, 75, 162, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(118, 75, 162, 0); }
+    }
+
+    /* --- NEW MODAL STYLES --- */
+    .modal {
+        display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); justify-content: center; align-items: center;
+    }
+    .modal-content {
+        background: #fff; border-radius: 12px; padding: 2rem; width: 400px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .modal-content h3 { margin-top: 0; color: #2d3748; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #4a5568; }
+    .form-group input, .form-group select { width: 100%; padding: 0.8rem; border-radius: 6px; border: 1px solid #cbd5e0; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 1.5rem; }
+    .btn-cancel { background: #cbd5e0; color: #2d3748; }
+    .btn-create { background: #3182ce; color: #fff; }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="reader-container">
+
+    <div class="pdf-viewer-area" id="pdf-viewer-area">
+        <div class="pdf-toolbar">
+            <button id="prev-page-btn">← Previous</button>
+            <span>Page <span id="page-num-display">--</span> / <span id="page-count-display">--</span></span>
+            <button id="next-page-btn">Next →</button>
+        </div>
+        <div id="viewer-container"></div>
+    </div>
+
+    <div class="annotation-sidebar">
+        
+        <div class="sidebar-header">
+            <select id="layer-select">
+                <option value="">-- Select Journal / Group --</option>
+            </select>
+            <button id="add-layer-btn" title="Create New Journal">+</button>
+        </div>
+
+        <div style="display: none;">
+            <button id="summarize-layer-btn"></button>
+            <div id="summary-display"><p id="summary-content"></p><button id="close-summary-btn"></button></div>
+        </div>
+
+        <div class="annotation-list" id="annotation-list">
+            <div style="text-align: center; padding-top: 30px; color: #a0aec0;">
+                <p>Select a journal layer above to view your thoughts.</p>
+            </div>
+        </div>
+
+        <div class="composer-tabs">
+            <div class="tab-btn active write-mode" id="tab-write" onclick="switchTab('write')">
+                🖊️ Write Note
+            </div>
+            <div class="tab-btn ai-mode" id="tab-ask" onclick="switchTab('ask')">
+                ✨ Ask AI
+            </div>
+        </div>
+
+        <div class="annotation-form">
+            <div class="composer-container">
+                <textarea id="annotation-textarea" placeholder="Write your thoughts here... (Select text on PDF to quote)"></textarea>
+                
+                <div class="composer-toolbar">
+                    <button id="ask-ai-btn" class="btn-modern" type="button" style="display: none;">
+                        <span>✨ Ask AI</span>
+                    </button>
+                    <button id="save-annotation-btn" class="btn-modern">
+                        <span>Save Note</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div id="createLayerModal" class="modal">
+    <div class="modal-content">
+        <h3>Create New Journal</h3>
+        <div class="form-group">
+            <label for="newLayerName">Journal Name</label>
+            <input type="text" id="newLayerName" placeholder="e.g., Chapter 1 Discussion">
+        </div>
+        <div class="form-group">
+            <label for="newLayerGroup">Shared With</label>
+            <select id="newLayerGroup">
+                <option value="0">🔒 Private / Public (Everyone)</option>
+                </select>
+        </div>
+        <div class="modal-actions">
+            <button id="cancelLayerBtn" class="btn-modern btn-cancel">Cancel</button>
+            <button id="confirmLayerBtn" class="btn-modern btn-create">Create</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const EBOOK_ID = {{ ebook.id }};
+    const CURRENT_USER_ID = {{ session.user_id }};
+    const CURRENT_USER_USERNAME = "{{ session.username }}";
+    const PDF_URL = "{{ s3_read_url | safe }}";
+
+    function switchTab(mode) {
+        const tabWrite = document.getElementById('tab-write');
+        const tabAsk = document.getElementById('tab-ask');
+        const btnSave = document.getElementById('save-annotation-btn');
+        const btnAsk = document.getElementById('ask-ai-btn');
+        const textArea = document.getElementById('annotation-textarea');
+
+        if (mode === 'write') {
+            tabWrite.classList.add('active');
+            tabAsk.classList.remove('active');
+            btnSave.style.display = 'flex';
+            btnAsk.style.display = 'none';
+            textArea.placeholder = "Write your thoughts here... (Select text on PDF to quote)";
+            textArea.style.height = "300px"; 
+        } else {
+            tabAsk.classList.add('active');
+            tabWrite.classList.remove('active');
+            btnAsk.style.display = 'flex';
+            btnSave.style.display = 'none';
+            textArea.placeholder = "Ask a question about this book (e.g. 'Why did the protagonist do that?')";
+            textArea.style.height = "60vh"; 
+        }
+    }
+</script>
+{% endblock %}
+
+{% block scripts %}
+  <script type="module" src="{{ url_for('static', filename='js/reader.js') }}"></script>
+{% endblock %}
